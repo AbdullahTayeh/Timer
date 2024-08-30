@@ -1,12 +1,8 @@
-[
-build
-]
+[build]
   publish = "."
-  command = ""  # This tells Netlify there's no build command
+  command = ""
 
-[[
-redirects
-]]
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
