@@ -1,0 +1,8 @@
+{
+  "name": "sleek-timer",
+  "version": "1.0.0",
+  "description": "A sleek online timer application",
+  "scripts": {
+    "build": "echo 'No build required'"
+  }
+}
