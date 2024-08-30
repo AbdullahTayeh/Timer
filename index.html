@@ -302,20 +302,10 @@
             const seconds = parseInt(document.getElementById('seconds').value) || 0;
             const duration = minutes * 60 + seconds;
 
-            fetch('http://localhost:5000/start_timer', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ duration: duration }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                endTime = data.end_time;
-                updateTimer();
-                timer = setInterval(updateTimer, 1000);
-                document.getElementById('timer').classList.add('active');
-            });
+            endTime = Date.now() + duration * 1000;
+            updateTimer();
+            timer = setInterval(updateTimer, 1000);
+            document.getElementById('timer').classList.add('active');
         }
 
         function stopTimer() {
@@ -325,22 +315,20 @@
         }
 
         function updateTimer() {
-            fetch(`http://localhost:5000/get_remaining_time?end_time=${endTime}`)
-            .then(response => response.json())
-            .then(data => {
-                const remainingTime = Math.ceil(data.remaining_time);
-                if (remainingTime <= 0) {
-                    clearInterval(timer);
-                    document.getElementById('timer').textContent = '00:00';
-                    document.getElementById('timer').classList.remove('active');
-                    playAlarm();
-                } else {
-                    const minutes = Math.floor(remainingTime / 60);
-                    const seconds = remainingTime % 60;
-                    document.getElementById('timer').textContent = 
-                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                }
-            });
+            const currentTime = Date.now();
+            const remainingTime = Math.max(0, Math.ceil((endTime - currentTime) / 1000));
+            
+            if (remainingTime <= 0) {
+                clearInterval(timer);
+                document.getElementById('timer').textContent = '00:00';
+                document.getElementById('timer').classList.remove('active');
+                playAlarm();
+            } else {
+                const minutes = Math.floor(remainingTime / 60);
+                const seconds = remainingTime % 60;
+                document.getElementById('timer').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
         }
 
         function setVolume(vol) {
