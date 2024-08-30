@@ -2,6 +2,7 @@
 build
 ]
   publish = "."
+  command = ""  # This tells Netlify there's no build command
 
 [[
 redirects
