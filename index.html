@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleek Online Timer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #00cec9;
+            --background-color: #dfe6e9;
+            --text-color: #2d3436;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-start: #a29bfe;
+            --gradient-end: #74b9ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 3rem;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px var(--shadow-color);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--secondary-color) 0%, transparent 70%);
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        button {
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 1;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+
+        button:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px var(--shadow-color);
+        }
+
+        .timer-display {
+            font-size: 6rem;
+            margin: 2rem 0;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-shadow: 2px 2px 4px var(--shadow-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .controls button {
+            flex: 1;
+            max-width: 180px;
+        }
+
+        input[type="number"] {
+            width: 70px;
+            padding: 0.8rem;
+            font-size: 1.1rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 15px;
+            text-align: center;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.3);
+        }
+
+        select {
+            padding: 0.8rem;
+            font-size: 1rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 15px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.3);
+        }
+
+        .volume-control {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .volume-control button {
+            font-size: 0.8rem;
+            padding: 0.6rem 1rem;
+        }
+
+        .set-timer, .alarm-sound {
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .timer-display.active {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="floating">Sleek Timer</h1>
+        <div class="preset-buttons">
+            <button onclick="setTimer(5)">5 Min</button>
+            <button onclick="setTimer(10)">10 Min</button>
+            <button onclick="setTimer(15)">15 Min</button>
+            <button onclick="setTimer(20)">20 Min</button>
+            <button onclick="setTimer(30)">30 Min</button>
+            <button onclick="setTimer(60)">60 Min</button>
+        </div>
+        <div class="timer-display floating" id="timer">00:00</div>
+        <div class="controls">
+            <button onclick="startTimer()">Start</button>
+            <button onclick="stopTimer()">Stop</button>
+        </div>
+        <div class="set-timer">
+            <label for="minutes">Set Custom Timer:</label>
+            <input type="number" id="minutes" min="0" max="59" value="0">
+            <span>:</span>
+            <input type="number" id="seconds" min="0" max="59" value="0">
+        </div>
+        <div class="alarm-sound">
+            <label for="alarm-sound">Select Alarm Sound:</label>
+            <select id="alarm-sound">
+                <option value="game">Game Sound</option>
+                <option value="doorbell">Door Bell</option>
+                <option value="dingding">Ding Ding</option>
+                <option value="alarm">Alarm Ring</option>
+                <option value="censor">Censor Beep</option>
+                <option value="piano">Piano Loop</option>
+                <option value="acoustic">Acoustic Arpeggio</option>
+                <option value="twobells">Two Bells</option>
+                <option value="notification">Notification</option>
+                <option value="success">Success</option>
+            </select>
+            <button onclick="previewAlarm()">Preview Alarm</button>
+        </div>
+        <div class="volume-control">
+            <label for="volume">Select Volume:</label>
+            <button onclick="setVolume(0)">Mute</button>
+            <button onclick="setVolume(0.25)">25%</button>
+            <button onclick="setVolume(0.5)">50%</button>
+            <button onclick="setVolume(0.75)">75%</button>
+            <button onclick="setVolume(1)">100%</button>
+        </div>
+    </div>
+    <script>
+        let timer;
+        let endTime;
+        let alarmSound;
+        let volume = 1;
+
+        function setTimer(minutes) {
+            document.getElementById('minutes').value = minutes;
+            document.getElementById('seconds').value = 0;
+        }
+
+        function startTimer() {
+            const minutes = parseInt(document.getElementById('minutes').value) || 0;
+            const seconds = parseInt(document.getElementById('seconds').value) || 0;
+            const duration = minutes * 60 + seconds;
+
+            fetch('http://localhost:5000/start_timer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ duration: duration }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                endTime = data.end_time;
+                updateTimer();
+                timer = setInterval(updateTimer, 1000);
+                document.getElementById('timer').classList.add('active');
+            });
+        }
+
+        function stopTimer() {
+            clearInterval(timer);
+            document.getElementById('timer').textContent = '00:00';
+            document.getElementById('timer').classList.remove('active');
+        }
+
+        function updateTimer() {
+            fetch(`http://localhost:5000/get_remaining_time?end_time=${endTime}`)
+            .then(response => response.json())
+            .then(data => {
+                const remainingTime = Math.ceil(data.remaining_time);
+                if (remainingTime <= 0) {
+                    clearInterval(timer);
+                    document.getElementById('timer').textContent = '00:00';
+                    document.getElementById('timer').classList.remove('active');
+                    playAlarm();
+                } else {
+                    const minutes = Math.floor(remainingTime / 60);
+                    const seconds = remainingTime % 60;
+                    document.getElementById('timer').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            });
+        }
+
+        function setVolume(vol) {
+            volume = vol;
+            if (alarmSound) {
+                alarmSound.volume(volume);
+            }
+        }
+
+        function playAlarm() {
+            const soundFile = document.getElementById('alarm-sound').value;
+            alarmSound = new Howl({
+                src: [`/sounds/${soundFile}.mp3`],
+                volume: volume,
+            });
+            alarmSound.play();
+        }
+
+        function previewAlarm() {
+            playAlarm();
+        }
+    </script>
+</body>
+</html>
